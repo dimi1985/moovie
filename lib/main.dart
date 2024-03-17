@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 
 void main() {
   runApp(MyApp());
@@ -116,18 +117,13 @@ class VideoPlayerScreen extends StatefulWidget {
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  late VideoPlayerController _controller;
+  late ChewieController _chewieController;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(widget.videoUrl)
-      ..initialize().then((_) {
-        setState(() {
-          _controller.play();
-        });
-      });
-    log(widget.videoUrl);
+    _initializeChewieController();
+    print(widget.videoUrl);
   }
 
   @override
@@ -135,10 +131,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('Movie Player')),
       body: Center(
-        child: _controller.value.isInitialized
-            ? AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: VideoPlayer(_controller),
+        child: _chewieController.videoPlayerController.value.isInitialized
+            ? Chewie(
+                controller: _chewieController,
               )
             : CircularProgressIndicator(),
       ),
@@ -148,6 +143,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   void dispose() {
     super.dispose();
-    _controller.dispose();
+    _chewieController.dispose();
+  }
+
+  void _initializeChewieController() {
+    final videoPlayerController =
+        VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
+    _chewieController = ChewieController(
+      videoPlayerController: videoPlayerController,
+      autoInitialize: true,
+      autoPlay: true,
+      looping: false,
+    );
   }
 }

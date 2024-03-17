@@ -33,7 +33,6 @@ dependencies:
   http: ^1.2.1
   video_player: ^2.8.3
   chewie: ^1.7.5
-  url_launcher: ^6.2.5
 
 
   # The following adds the Cupertino Icons font to your application.
