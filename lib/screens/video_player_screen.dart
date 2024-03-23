@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:movie_streaming_app/models/movie.dart';
 import 'package:subtitle_wrapper_package/data/models/style/subtitle_style.dart';
@@ -26,35 +27,54 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   void initState() {
     super.initState();
 
-    _videoPlayerController = VideoPlayerController.network(
-      widget.movie.videoUrl,
+    _videoPlayerController = VideoPlayerController.networkUrl(
+      Uri.parse(widget.movie.videoUrl),
     );
     _subtitleController = SubtitleController(
-      subtitleUrl: widget.movie.subtitleUrl,
-      subtitleType: SubtitleType.srt,
-    );
+        subtitleUrl: widget.movie.subtitleUrl,
+        subtitleType: SubtitleType.srt,
+        showSubtitles: true);
 
     _chewieController = ChewieController(
       videoPlayerController: _videoPlayerController,
       autoPlay: true,
       looping: false,
-      subtitle: Subtitles(_parseSubtitles()),
+      aspectRatio: 16 / 9,
+      fullScreenByDefault: false,
+      allowFullScreen: false,
+      allowedScreenSleep: false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    // Lock screen orientation to landscape mode
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+
     return Scaffold(
-      appBar: AppBar(title: Text(widget.movie.name)),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        iconTheme: const IconThemeData(
+          color: Colors.white, // Change this color to your desired color
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      backgroundColor: Colors.black,
       body: SubtitleWrapper(
         videoPlayerController: _videoPlayerController,
         subtitleController: _subtitleController,
-        subtitleStyle: SubtitleStyle(
+        subtitleStyle: const SubtitleStyle(
           textColor: Colors.white,
           hasBorder: true,
         ),
-        videoChild: Chewie(
-          controller: _chewieController,
+        videoChild: SizedBox(
+          child: Chewie(
+            controller: _chewieController,
+          ),
         ),
       ),
     );
@@ -63,13 +83,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   void dispose() {
     super.dispose();
+    // Unlock screen orientation when exiting
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
     _videoPlayerController.dispose();
     _chewieController.dispose();
-  }
-
-  List<Subtitle> _parseSubtitles() {
-    // Here you can fetch subtitles from the subtitleUrl and parse them
-    // For simplicity, I'm returning an empty list
-    return [];
   }
 }
